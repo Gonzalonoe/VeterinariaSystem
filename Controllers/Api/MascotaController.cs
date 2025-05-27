@@ -32,6 +32,10 @@ namespace VeterinariaSystem.Controllers.Api
                     return NotFound(new { mensaje = "Dueño no encontrado" });
 
                 var mascotas = repoMascota.ObtenerPorDuenoo(dueno.Id);
+                // foreach (var mascota in mascotas)
+                // {
+                //     mascota.Dueno = null;
+                // }
                 return Ok(mascotas);
             }
             catch (Exception ex)
