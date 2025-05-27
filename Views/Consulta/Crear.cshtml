@@ -78,7 +78,7 @@
             var idDueno = $(this).val();
             if (idDueno) {
                 $.ajax({
-                    url: '@Url.Action("ObtenerMascotasPorDueno", "Consulta")', // aca se usa ajax para obtener las mascotas por dueño
+                    url: '@Url.Action("ObtenerMascotasPorDueno", "Consulta")',
                     data: { idDueno: idDueno },
                     success: function(data) {
                         var mascotaSelect = $("#Id_Mascota");

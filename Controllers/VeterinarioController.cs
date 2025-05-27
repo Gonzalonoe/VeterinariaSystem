@@ -14,11 +14,21 @@ namespace VeterinariaSystem.Controllers
             this.environment = environment;
             this.repo = repo;
         }
-        
+
         // GET: /Veterinario/
-        public IActionResult Index()
+        // public IActionResult Index()
+        // {
+        //     var lista = repo.ObtenerTodos();
+        //     return View(lista);
+        // }
+        public IActionResult Index(int pagina = 1, int cantidadPorPagina = 10)
         {
-            var lista = repo.ObtenerTodos();
+            var total = repo.ObtenerCantidad();
+            var lista = repo.ObtenerTodosPaginado(pagina, cantidadPorPagina);
+
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / cantidadPorPagina);
+
             return View(lista);
         }
 
@@ -26,7 +36,8 @@ namespace VeterinariaSystem.Controllers
         public IActionResult Detalles(int id)
         {
             var vet = repo.ObtenerPorId(id);
-            if (vet == null) return NotFound();
+            if (vet == null)
+                return NotFound();
             return View(vet);
         }
 
@@ -58,7 +69,8 @@ namespace VeterinariaSystem.Controllers
         public IActionResult Editar(int id)
         {
             var vet = repo.ObtenerPorId(id);
-            if (vet == null) return NotFound();
+            if (vet == null)
+                return NotFound();
             return View(vet);
         }
 
@@ -66,7 +78,8 @@ namespace VeterinariaSystem.Controllers
         [HttpPost]
         public IActionResult Editar(int id, Veterinario veterinario)
         {
-            if (id != veterinario.Id) return NotFound();
+            if (id != veterinario.Id)
+                return NotFound();
             if (ModelState.IsValid)
             {
                 repo.Modificacion(veterinario);
@@ -79,7 +92,8 @@ namespace VeterinariaSystem.Controllers
         public IActionResult Eliminar(int id)
         {
             var vet = repo.ObtenerPorId(id);
-            if (vet == null) return NotFound();
+            if (vet == null)
+                return NotFound();
             return View(vet);
         }
 
@@ -117,7 +131,7 @@ namespace VeterinariaSystem.Controllers
         public IActionResult BuscarPorMatricula(string matricula)
         {
             var lista = repo.ObtenerPorMatricula(matricula);
-            
+
             TempData["MensajeBusqueda"] = $"Mostrando resultados para Matrícula: {matricula}";
             return View("Index", lista);
         }

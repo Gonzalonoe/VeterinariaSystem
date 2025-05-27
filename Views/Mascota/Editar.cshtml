@@ -17,7 +17,10 @@
 
     <div class="mb-3">
         <label asp-for="Especie" class="form-label"></label>
-        <input asp-for="Especie" class="form-control" />
+        <select asp-for="Especie" class="form-select">
+            <option value="Felino">Felino</option>
+            <option value="Canino">Canino</option>
+        </select>
         <span asp-validation-for="Especie" class="text-danger"></span>
     </div>
 
@@ -51,7 +54,13 @@
 </div>
 
     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    @if (User.IsInRole("Dueno"))
+    {
+        <a asp-action="MisMascotas" class="btn btn-secondary">Cancelar</a>
+    }else
+    {
+        <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+    }
 </form>
 
 @section Scripts {

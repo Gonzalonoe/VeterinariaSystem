@@ -10,8 +10,12 @@ namespace VeterinariaSystem.Models
         Dueno ObtenerPorId(int id);
         Dueno ObtenerPorEmail(string email);
         Dueno ObtenerPorDni(int dni);
+        Dueno BuscarPorDni(int dni);
+        IList<Dueno> ObtenerDuenosSinUsuario();
         int Alta(Dueno dueno);
         int Modificacion(Dueno dueno);
         int Baja(int id);
+        IList<Dueno> ObtenerTodosPaginado(int pagina, int tamañoPagina);
+        int ContarDueno();
     }
 }

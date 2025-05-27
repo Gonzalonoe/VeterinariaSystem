@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using VeterinariaSystem.Models;
@@ -28,17 +30,35 @@ public class ConsultaController : Controller
         this.environment = environment;
     }
 
-    public IActionResult Index()
+    [Authorize(Roles = "Veterinario, Administrador")]
+    public IActionResult Index(int pagina = 1)
     {
-        var consultas = repo.ObtenerTodos();
+        int tamaño = 5;
+        var consultas = repo.ObtenerPaginadas(pagina, tamaño);
+
+        // foreach (var consulta in consultas)
+        // {
+        //     consulta.Mascota = repoMascota.ObtenerPorId(consulta.Id_Mascota);
+        //     consulta.Veterinario = repoVeterinario.ObtenerPorId(consulta.Id_Veterinario);
+        // }
         foreach (var consulta in consultas)
         {
-            consulta.Mascota = repoMascota.ObtenerPorId(consulta.Id_Mascota);
-            consulta.Veterinario = repoVeterinario.ObtenerPorId(consulta.Id_Veterinario);
+            consulta.Mascota =
+                repoMascota.ObtenerPorId(consulta.Id_Mascota)
+                ?? new Mascota { Nombre = "Desconocida" };
+            consulta.Veterinario =
+                repoVeterinario.ObtenerPorId(consulta.Id_Veterinario)
+                ?? new Veterinario { Nombre = "Desconocido", Apellido = "" };
         }
+
+        int total = repo.ObtenerCantidad();
+        ViewBag.Pagina = pagina;
+        ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / tamaño);
+
         return View(consultas);
     }
 
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult Detalles(int id)
     {
         var consulta = repo.ObtenerPorId(id);
@@ -51,6 +71,7 @@ public class ConsultaController : Controller
         return View(consulta);
     }
 
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult Editar(int id)
     {
         var consulta = repo.ObtenerPorId(id);
@@ -62,6 +83,8 @@ public class ConsultaController : Controller
         consulta.Veterinario = repoVeterinario.ObtenerPorId(consulta.Id_Veterinario);
         return View(consulta);
     }
+
+    [Authorize(Roles = "Veterinario, Administrador")]
     [HttpPost]
     public IActionResult Editar(int id, Consulta consulta, IFormFile? ArchivoNuevo)
     {
@@ -78,7 +101,8 @@ public class ConsultaController : Controller
             {
                 if (ArchivoNuevo != null && ArchivoNuevo.Length > 0)
                 {
-                    var nombreArchivo = Guid.NewGuid().ToString() + Path.GetExtension(ArchivoNuevo.FileName);
+                    var nombreArchivo =
+                        Guid.NewGuid().ToString() + Path.GetExtension(ArchivoNuevo.FileName);
                     var ruta = Path.Combine(environment.WebRootPath, "archivos", nombreArchivo);
 
                     using (var stream = new FileStream(ruta, FileMode.Create))
@@ -91,7 +115,11 @@ public class ConsultaController : Controller
                     var consultaAnterior = repo.ObtenerPorId(id);
                     if (!string.IsNullOrEmpty(consultaAnterior.ArchivoAdjunto))
                     {
-                        var rutaAnterior = Path.Combine(environment.WebRootPath, "archivos", consultaAnterior.ArchivoAdjunto);
+                        var rutaAnterior = Path.Combine(
+                            environment.WebRootPath,
+                            "archivos",
+                            consultaAnterior.ArchivoAdjunto
+                        );
                         if (System.IO.File.Exists(rutaAnterior))
                         {
                             System.IO.File.Delete(rutaAnterior);
@@ -118,7 +146,7 @@ public class ConsultaController : Controller
         return View(consulta);
     }
 
-
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult Crear()
     {
         var veterinarios = repoVeterinario
@@ -127,32 +155,31 @@ public class ConsultaController : Controller
             .ToList();
         ViewBag.Veterinarios = new SelectList(veterinarios, "Id", "NombreCompleto");
         var duenos = repoDueno
-        .ObtenerTodos()
-        .Select(d => new SelectListItem
-        {
-            Value = d.Id.ToString(),
-            Text = d.Nombre + " " + d.Apellido
-        })
-        .ToList();
+            .ObtenerTodos()
+            .Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Nombre + " " + d.Apellido,
+            })
+            .ToList();
         ViewBag.Duenos = new SelectList(duenos, "Value", "Text");
 
         ViewBag.Mascotas = new SelectList(new List<Mascota>(), "Id", "Nombre");
 
         return View();
     }
+
     public IActionResult ObtenerMascotasPorDueno(int idDueno)
     {
-        var mascotas = repoMascota.ObtenerPorDueno(idDueno);  
+        var mascotas = repoMascota.ObtenerPorDuenoo(idDueno);
 
-        var resultado = mascotas.Select(m => new {
-            id = m.Id,
-            nombre = m.Nombre
-        });
+        var resultado = mascotas.Select(m => new { id = m.Id, nombre = m.Nombre });
 
         return Json(resultado);
     }
 
     [HttpPost]
+    [Authorize(Roles = "Veterinario, Administrador")]
     [ValidateAntiForgeryToken]
     public IActionResult Crear(Consulta consulta, IFormFile? Archivo)
     {
@@ -194,13 +221,13 @@ public class ConsultaController : Controller
             .ToList();
         ViewBag.Veterinarios = new SelectList(veterinarios, "Id", "NombreCompleto");
         var duenos = repoDueno
-        .ObtenerTodos()
-        .Select(d => new SelectListItem
-        {
-            Value = d.Id.ToString(),
-            Text = d.Nombre + " " + d.Apellido
-        })
-        .ToList();
+            .ObtenerTodos()
+            .Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Nombre + " " + d.Apellido,
+            })
+            .ToList();
         ViewBag.Duenos = new SelectList(duenos, "Value", "Text");
 
         ViewBag.Mascotas = new SelectList(new List<Mascota>(), "Id", "Nombre");
@@ -208,12 +235,13 @@ public class ConsultaController : Controller
         return View(consulta.Id_Turno != null ? "CrearDesdeTurno" : "Crear", consulta);
     }
 
-
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult SeleccionarTurno()
     {
         return View();
     }
 
+    [Authorize(Roles = "Veterinario, Administrador")]
     [HttpPost]
     public IActionResult SeleccionarTurno(bool crearDesdeCero)
     {
@@ -228,6 +256,7 @@ public class ConsultaController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult SeleccionarTurnoExistente()
     {
         ViewBag.Duenos = new SelectList(
@@ -247,6 +276,7 @@ public class ConsultaController : Controller
     }
 
     [HttpPost]
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult SeleccionarTurnoExistente(
         int? Id_Dueno,
         int? idMascota,
@@ -270,7 +300,7 @@ public class ConsultaController : Controller
 
         if (Id_Dueno.HasValue)
         {
-            var mascotas = repoMascota.ObtenerPorDueno(Id_Dueno.Value);
+            var mascotas = repoMascota.ObtenerPorDuenoo(Id_Dueno.Value);
             ViewBag.Mascotas = new SelectList(mascotas, "Id", "Nombre", idMascota);
 
             if (idMascota.HasValue)
@@ -297,6 +327,7 @@ public class ConsultaController : Controller
     }
 
     [HttpGet]
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult CrearDesdeTurno(int idTurno)
     {
         var turno = repoTurno.ObtenerPorId(idTurno);
@@ -310,14 +341,14 @@ public class ConsultaController : Controller
             Id_Turno = turno.Id,
             Id_Mascota = turno.Id_Mascota.Value,
             Fecha = turno.Fecha,
-            Motivo = turno.Motivo
+            Motivo = turno.Motivo,
         };
 
         var veterinarios = repoVeterinario
             .ObtenerTodos()
             .Select(v => new { Id = v.Id, NombreCompleto = v.Nombre + " " + v.Apellido })
             .ToList();
-            ViewBag.Veterinarios = new SelectList(
+        ViewBag.Veterinarios = new SelectList(
             veterinarios,
             "Id",
             "NombreCompleto",
@@ -326,4 +357,134 @@ public class ConsultaController : Controller
 
         return View("CrearDesdeTurno", consulta);
     }
+
+    //Zona Busquedas
+    [Authorize(Roles = "Veterinario, Administrador")]
+    public IActionResult Busquedas()
+    {
+        return View();
+    }
+
+    public IActionResult BuscarPorMascota(int? idDueno, int? idMascota, int pagina = 1)
+    {
+        var duenos = repoDueno
+            .ObtenerTodos()
+            .Select(d => new SelectListItem
+            {
+                Value = d.Id.ToString(),
+                Text = d.Nombre + " " + d.Apellido,
+            })
+            .ToList();
+        ViewBag.Duenos = new SelectList(duenos, "Value", "Text");
+
+        if (idDueno.HasValue)
+        {
+            var mascotas = repoMascota
+                .ObtenerPorDuenoo(idDueno.Value)
+                .Select(m => new SelectListItem { Value = m.Id.ToString(), Text = m.Nombre })
+                .ToList();
+            ViewBag.Mascotas = new SelectList(mascotas, "Value", "Text");
+        }
+        else
+        {
+            ViewBag.Mascotas = new SelectList(new List<SelectListItem>());
+        }
+
+        if (!idMascota.HasValue)
+        {
+            ViewBag.Pagina = 1;
+            ViewBag.TotalPaginas = 0;
+            return View(new List<Consulta>());
+        }
+
+        int tamaño = 5;
+        var consultas = repo.BuscarPorMascotaPaginado(idMascota.Value, pagina, tamaño);
+        foreach (var consulta in consultas)
+        {
+            consulta.Mascota = repoMascota.ObtenerPorId(consulta.Id_Mascota);
+            consulta.Veterinario = repoVeterinario.ObtenerPorId(consulta.Id_Veterinario);
+        }
+
+        int total = repo.ObtenerCantidadPorMascota(idMascota.Value);
+        ViewBag.Pagina = pagina;
+        ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / tamaño);
+        ViewBag.IdDuenoSeleccionado = idDueno;
+        ViewBag.IdMascotaSeleccionada = idMascota;
+
+        return View(consultas);
+    }
+
+    [Authorize(Roles = "Veterinario, Administrador")]
+    public IActionResult BuscarPorVeterinario(int? idVeterinario, int pagina = 1)
+    {
+        int tamaño = 5;
+        ViewBag.Veterinarios = repoVeterinario
+            .ObtenerTodos()
+            .Select(v => new SelectListItem { Value = v.Id.ToString(), Text = v.Nombre })
+            .ToList();
+
+        if (idVeterinario == null)
+        {
+            ViewBag.Pagina = 1;
+            ViewBag.TotalPaginas = 0;
+            return View();
+        }
+
+        var consultas = repo.BuscarPorVeterinarioPaginado(idVeterinario.Value, pagina, tamaño);
+        foreach (var consulta in consultas)
+        {
+            consulta.Mascota = repoMascota.ObtenerPorId(consulta.Id_Mascota);
+            consulta.Veterinario = repoVeterinario.ObtenerPorId(consulta.Id_Veterinario);
+        }
+
+        int total = repo.ObtenerCantidadPorVeterinario(idVeterinario.Value);
+        ViewBag.Pagina = pagina;
+        ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / tamaño);
+        ViewBag.IdVeterinarioSeleccionado = idVeterinario.Value;
+
+        return View(consultas);
+    }
+
+    [Authorize(Roles = "Veterinario, Administrador")]
+    public IActionResult BuscarPorFechas(DateTime? fechaInicio, DateTime? fechaFin, int pagina = 1)
+    {
+        int tamaño = 5;
+
+        if (!fechaInicio.HasValue || !fechaFin.HasValue)
+        {
+            ViewBag.Mensaje = "Por favor, seleccione un rango de fechas.";
+            ViewBag.Pagina = 1;
+            ViewBag.TotalPaginas = 0;
+            return View();
+        }
+
+        if (fechaInicio > fechaFin)
+        {
+            ViewBag.Mensaje = "La fecha de inicio debe ser anterior a la fecha de fin.";
+            ViewBag.Pagina = 1;
+            ViewBag.TotalPaginas = 0;
+            return View();
+        }
+
+        var consultas = repo.BuscarPorFechasPaginado(
+            fechaInicio.Value,
+            fechaFin.Value,
+            pagina,
+            tamaño
+        );
+        foreach (var consulta in consultas)
+        {
+            consulta.Mascota = repoMascota.ObtenerPorId(consulta.Id_Mascota);
+            consulta.Veterinario = repoVeterinario.ObtenerPorId(consulta.Id_Veterinario);
+        }
+
+        int total = repo.ObtenerCantidadPorFechas(fechaInicio.Value, fechaFin.Value);
+        ViewBag.Pagina = pagina;
+        ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / tamaño);
+        ViewBag.FechaInicio = fechaInicio.Value.ToString("yyyy-MM-dd");
+        ViewBag.FechaFin = fechaFin.Value.ToString("yyyy-MM-dd");
+
+        return View(consultas);
+    }
+    //Fin zona Busquedas
 }

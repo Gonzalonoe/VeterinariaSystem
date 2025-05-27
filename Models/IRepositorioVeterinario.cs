@@ -13,5 +13,8 @@ namespace VeterinariaSystem.Models
         int Alta(Veterinario veterinario);
         int Modificacion(Veterinario veterinario);
         int Baja(int id);
+        IList<Veterinario> ObtenerVeterinariosSinUsuario();
+        int ObtenerCantidad();
+        IList<Veterinario> ObtenerTodosPaginado(int pagina, int cantidadPorPagina);
     }
 }

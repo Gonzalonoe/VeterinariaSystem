@@ -8,9 +8,13 @@ namespace VeterinariaSystem.Models
     {
         IList<Mascota> ObtenerTodos();
         Mascota ObtenerPorId(int id);
-        IList<Mascota> ObtenerPorDueno(int idDueno);
+        int ObtenerCantidadPorDueno(int idDueno);
+        IList<Mascota> ObtenerPorDuenoPaginado(int idDueno, int pagina, int tamaño);
+        IList<Mascota> ObtenerPorDuenoo(int idDueno);
         int Alta(Mascota mascota);
         int Modificacion(Mascota mascota);
         int Baja(int id);
+        int ObtenerCantidadMascotasActivas();
+        IList<Mascota> ObtenerTodosPaginado(int pagina, int tamaño);
     }
 }

@@ -25,7 +25,6 @@ namespace VeterinariaSystem.Models
         public string Email { get; set; }
 
         [Display(Name = "Estado")]
-        public int Estado { get; set; } = 1;    
-
+        public int Estado { get; set; } = 1;
     }
 }

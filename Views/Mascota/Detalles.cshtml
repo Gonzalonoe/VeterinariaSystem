@@ -28,4 +28,10 @@
 </div>
 
 <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
-<a asp-action="Index" class="btn btn-secondary">Volver</a>
+@if (User.IsInRole("Dueno"))
+{
+    <a asp-action="MisMascotas" class="btn btn-secondary">Volver</a>
+}else
+{
+    <a asp-action="Index" class="btn btn-secondary">Volver</a>
+}

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using VeterinariaSystem.Models;
@@ -8,26 +9,39 @@ namespace VeterinariaSystem.Controllers
     {
         private readonly IRepositorioMascota repositorio;
         private readonly IRepositorioDueno repoDueno;
+        private readonly IRepositorioConsulta repoConsulta;
+        private readonly IRepositorioUsuario repoUsuario;
         private readonly IWebHostEnvironment environment;
 
         public MascotaController(
             IWebHostEnvironment environment,
             IRepositorioMascota repo,
-            IRepositorioDueno repoDueno
+            IRepositorioDueno repoDueno,
+            IRepositorioConsulta repoConsulta,
+            IRepositorioUsuario repoUsuario
         )
         {
             this.environment = environment;
             this.repositorio = repo;
             this.repoDueno = repoDueno;
+            this.repoConsulta = repoConsulta;
+            this.repoUsuario = repoUsuario;
         }
 
-        // GET: /Mascota
-        public IActionResult Index()
+        [Authorize(Roles = "Veterinario, Administrador")]
+        public IActionResult Index(int pagina = 1)
         {
-            var mascotas = repositorio.ObtenerTodos();
-            return View("Index", mascotas);
+            int tamañoPagina = 10;
+            int totalMascotas = repositorio.ObtenerCantidadMascotasActivas();
+            var mascotas = repositorio.ObtenerTodosPaginado(pagina, tamañoPagina);
+
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalMascotas / tamañoPagina);
+
+            return View(mascotas);
         }
 
+        [Authorize(Roles = "Veterinario, Administrador, Dueno")]
         // GET: /Mascota/Detalles/5
         public IActionResult Detalles(int id)
         {
@@ -38,6 +52,7 @@ namespace VeterinariaSystem.Controllers
             return View("Detalles", mascota);
         }
 
+        [Authorize(Roles = "Veterinario, Administrador")]
         // GET: /Mascota/Crear
         public IActionResult Crear()
         {
@@ -45,6 +60,7 @@ namespace VeterinariaSystem.Controllers
             return View("Crear");
         }
 
+        [Authorize(Roles = "Veterinario, Administrador")]
         // POST: /Mascota/Crear
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -60,6 +76,7 @@ namespace VeterinariaSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Veterinario, Administrador, Dueno")]
         //GET: /Mascota/Editar/5
         public IActionResult Editar(int id)
         {
@@ -69,6 +86,7 @@ namespace VeterinariaSystem.Controllers
             return View("Editar", mascota);
         }
 
+        [Authorize(Roles = "Veterinario, Administrador, Dueno")]
         // POST: /Mascota/Editar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -90,9 +108,19 @@ namespace VeterinariaSystem.Controllers
                 return View("Editar", mascota);
             }
             repositorio.Modificacion(mascota);
-            return RedirectToAction(nameof(Index));
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
+            if (User.IsInRole("Dueno"))
+            {
+                return RedirectToAction(nameof(MisMascotas));
+            }
+            else
+            {
+                return RedirectToAction(nameof(Index));
+            }
         }
 
+        [Authorize(Roles = "Administrador")]
         // GET: /Mascota/Eliminar/5
         public IActionResult Eliminar(int id)
         {
@@ -103,6 +131,7 @@ namespace VeterinariaSystem.Controllers
             return View("Eliminar", mascota);
         }
 
+        [Authorize(Roles = "Administrador")]
         // POST: /Mascota/Eliminar/5
         [HttpPost, ActionName("Eliminar")]
         [ValidateAntiForgeryToken]
@@ -113,6 +142,7 @@ namespace VeterinariaSystem.Controllers
         }
 
         //ZonaBusquedas
+        [Authorize(Roles = "Veterinario, Administrador")]
         [HttpGet]
         public IActionResult BuscarPorDueno()
         {
@@ -121,14 +151,88 @@ namespace VeterinariaSystem.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Veterinario, Administrador")]
         [HttpPost]
-        public IActionResult BuscarPorDueno(int idDueno)
+        public IActionResult BuscarPorDueno(int idDueno, int pagina = 1)
         {
+            int tamañoPagina = 5;
             var listaDuenos = repoDueno.ObtenerTodos();
             ViewBag.Duenos = listaDuenos;
-            var mascotas = repositorio.ObtenerPorDueno(idDueno);
+            var totalMascotas = repositorio.ObtenerCantidadPorDueno(idDueno);
+            var mascotas = repositorio.ObtenerPorDuenoPaginado(idDueno, pagina, tamañoPagina);
+
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalMascotas / tamañoPagina);
             return View(mascotas);
         }
+
         //FinZonaBusquedas
+        // Zona Dueno
+        [Authorize(Roles = "Dueno")]
+        public IActionResult MisMascotas(int pagina = 1)
+        {
+            int tamañoPagina = 5;
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
+
+            var totalMascotas = repositorio.ObtenerCantidadPorDueno(dueno.Id);
+            var mascotas = repositorio.ObtenerPorDuenoPaginado(dueno.Id, pagina, tamañoPagina);
+
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)totalMascotas / tamañoPagina);
+
+            return View("MisMascotas", mascotas);
+        }
+
+        [Authorize(Roles = "Dueno")]
+        public IActionResult CrearParaDueno()
+        {
+            return View("CrearParaDueno");
+        }
+
+        [Authorize(Roles = "Dueno")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult CrearParaDueno(Mascota mascota)
+        {
+            ModelState.Remove("Dueno");
+            if (!ModelState.IsValid)
+            {
+                return View("CrearParaDueno", mascota);
+            }
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
+            mascota.Id_Dueno = dueno.Id;
+            mascota.Estado = 1;
+            repositorio.Alta(mascota);
+            return RedirectToAction(nameof(MisMascotas));
+        }
+
+        [Authorize(Roles = "Dueno")]
+        public IActionResult HistoriaClinica(int id, int pagina = 1)
+        {
+            int tamanoPagina = 5;
+            var mascota = repositorio.ObtenerPorId(id);
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
+            var userId = dueno.Id;
+
+            if (mascota == null || mascota.Id_Dueno != userId)
+            {
+                return Unauthorized();
+            }
+
+            int total;
+            var historia = repoConsulta.ObtenerHistoriaClinica(id, pagina, tamanoPagina, out total);
+
+            ViewBag.Mascota = mascota;
+            ViewBag.PaginaActual = pagina;
+            ViewBag.TotalPaginas = (int)Math.Ceiling((double)total / tamanoPagina);
+            ViewBag.IdMascota = id;
+
+            return View("HistoriaClinica", historia);
+        }
+
+        //Fin Zona Dueno
     }
 }
