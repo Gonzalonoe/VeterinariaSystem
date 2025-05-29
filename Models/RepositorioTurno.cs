@@ -7,17 +7,22 @@ namespace VeterinariaSystem.Models
 {
     public class RepositorioTurno : RepositorioBase, IRepositorioTurno
     {
-        public RepositorioTurno(IConfiguration configuration) : base(configuration) { }
+        public RepositorioTurno(IConfiguration configuration)
+            : base(configuration) { }
 
         public int Alta(Turno turno)
         {
             int res = -1;
 
-            if (ExisteTurnoEnHorario(turno.Fecha, turno.Hora) || ExisteTurnoParaMascotaEnDia(turno.Id_Mascota.Value, turno.Fecha))
+            if (
+                ExisteTurnoEnHorario(turno.Fecha, turno.Hora)
+                || ExisteTurnoParaMascotaEnDia(turno.Id_Mascota.Value, turno.Fecha)
+            )
                 return -1;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"INSERT INTO Turno (Id_Mascota, Motivo, Fecha, Hora, Estado)
+                string sql =
+                    @"INSERT INTO Turno (Id_Mascota, Motivo, Fecha, Hora, Estado)
                                VALUES (@idMascota, @motivo, @fecha, @hora, @estado);
                                SELECT LAST_INSERT_ID();";
                 using (var command = new MySqlCommand(sql, connection))
@@ -60,7 +65,8 @@ namespace VeterinariaSystem.Models
 
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"UPDATE Turno SET Id_Mascota = @idMascota, Motivo = @motivo,
+                string sql =
+                    @"UPDATE Turno SET Id_Mascota = @idMascota, Motivo = @motivo,
                                 Fecha = @fecha, Hora = @hora WHERE Id = @id;";
                 using (var command = new MySqlCommand(sql, connection))
                 {
@@ -83,7 +89,8 @@ namespace VeterinariaSystem.Models
             Turno turno = null;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
+                string sql =
+                    @"
                     SELECT t.Id, t.Id_Mascota, t.Motivo, t.Fecha, t.Hora, t.Estado,
                         m.Nombre, m.Especie, m.Raza, m.Edad, m.Peso, m.Sexo, m.Id_Dueno
                     FROM Turno t
@@ -105,16 +112,18 @@ namespace VeterinariaSystem.Models
                                 Fecha = reader.GetDateTime(3),
                                 Hora = reader.GetTimeSpan(4),
                                 Estado = reader.GetInt32(5),
-                                Mascota = reader.IsDBNull(1) ? null : new Mascota
-                                {
-                                    Nombre = reader.GetString(6),
-                                    Especie = reader.GetString(7),
-                                    Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
-                                    Edad = reader.GetInt32(9),
-                                    Peso = reader.GetInt32(10),
-                                    Sexo = reader.GetString(11),
-                                    Id_Dueno = reader.GetInt32(12)
-                                }
+                                Mascota = reader.IsDBNull(1)
+                                    ? null
+                                    : new Mascota
+                                    {
+                                        Nombre = reader.GetString(6),
+                                        Especie = reader.GetString(7),
+                                        Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
+                                        Edad = reader.GetInt32(9),
+                                        Peso = reader.GetInt32(10),
+                                        Sexo = reader.GetString(11),
+                                        Id_Dueno = reader.GetInt32(12),
+                                    },
                             };
                         }
                     }
@@ -129,7 +138,8 @@ namespace VeterinariaSystem.Models
             IList<Turno> lista = new List<Turno>();
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
+                string sql =
+                    @"
                     SELECT t.Id, t.Id_Mascota, t.Motivo, t.Fecha, t.Hora, t.Estado,
                         m.Nombre, m.Especie, m.Raza, m.Edad, m.Peso, m.Sexo, m.Id_Dueno
                     FROM Turno t
@@ -142,25 +152,29 @@ namespace VeterinariaSystem.Models
                     {
                         while (reader.Read())
                         {
-                            lista.Add(new Turno
-                            {
-                                Id = reader.GetInt32(0),
-                                Id_Mascota = reader.IsDBNull(1) ? null : reader.GetInt32(1),
-                                Motivo = reader.GetString(2),
-                                Fecha = reader.GetDateTime(3),
-                                Hora = reader.GetTimeSpan(4),
-                                Estado = reader.GetInt32(5),
-                                Mascota = reader.IsDBNull(1) ? null : new Mascota
+                            lista.Add(
+                                new Turno
                                 {
-                                    Nombre = reader.GetString(6),
-                                    Especie = reader.GetString(7),
-                                    Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
-                                    Edad = reader.GetInt32(9),
-                                    Peso = reader.GetInt32(10),
-                                    Sexo = reader.GetString(11),
-                                    Id_Dueno = reader.GetInt32(12)
+                                    Id = reader.GetInt32(0),
+                                    Id_Mascota = reader.IsDBNull(1) ? null : reader.GetInt32(1),
+                                    Motivo = reader.GetString(2),
+                                    Fecha = reader.GetDateTime(3),
+                                    Hora = reader.GetTimeSpan(4),
+                                    Estado = reader.GetInt32(5),
+                                    Mascota = reader.IsDBNull(1)
+                                        ? null
+                                        : new Mascota
+                                        {
+                                            Nombre = reader.GetString(6),
+                                            Especie = reader.GetString(7),
+                                            Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
+                                            Edad = reader.GetInt32(9),
+                                            Peso = reader.GetInt32(10),
+                                            Sexo = reader.GetString(11),
+                                            Id_Dueno = reader.GetInt32(12),
+                                        },
                                 }
-                            });
+                            );
                         }
                     }
                     connection.Close();
@@ -169,13 +183,13 @@ namespace VeterinariaSystem.Models
             return lista;
         }
 
-
         public IList<Turno> ObtenerPorFecha(DateTime fecha)
         {
             IList<Turno> lista = new List<Turno>();
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
+                string sql =
+                    @"
                     SELECT t.Id, t.Id_Mascota, t.Motivo, t.Fecha, t.Hora, t.Estado,
                         m.Nombre, m.Especie, m.Raza, m.Edad, m.Peso, m.Sexo, m.Id_Dueno
                     FROM Turno t
@@ -189,25 +203,29 @@ namespace VeterinariaSystem.Models
                     {
                         while (reader.Read())
                         {
-                            lista.Add(new Turno
-                            {
-                                Id = reader.GetInt32(0),
-                                Id_Mascota = reader.IsDBNull(1) ? null : reader.GetInt32(1),
-                                Motivo = reader.GetString(2),
-                                Fecha = reader.GetDateTime(3),
-                                Hora = reader.GetTimeSpan(4),
-                                Estado = reader.GetInt32(5),
-                                Mascota = reader.IsDBNull(1) ? null : new Mascota
+                            lista.Add(
+                                new Turno
                                 {
-                                    Nombre = reader.GetString(6),
-                                    Especie = reader.GetString(7),
-                                    Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
-                                    Edad = reader.GetInt32(9),
-                                    Peso = reader.GetInt32(10),
-                                    Sexo = reader.GetString(11),
-                                    Id_Dueno = reader.GetInt32(12)
+                                    Id = reader.GetInt32(0),
+                                    Id_Mascota = reader.IsDBNull(1) ? null : reader.GetInt32(1),
+                                    Motivo = reader.GetString(2),
+                                    Fecha = reader.GetDateTime(3),
+                                    Hora = reader.GetTimeSpan(4),
+                                    Estado = reader.GetInt32(5),
+                                    Mascota = reader.IsDBNull(1)
+                                        ? null
+                                        : new Mascota
+                                        {
+                                            Nombre = reader.GetString(6),
+                                            Especie = reader.GetString(7),
+                                            Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
+                                            Edad = reader.GetInt32(9),
+                                            Peso = reader.GetInt32(10),
+                                            Sexo = reader.GetString(11),
+                                            Id_Dueno = reader.GetInt32(12),
+                                        },
                                 }
-                            });
+                            );
                         }
                     }
                     connection.Close();
@@ -221,7 +239,8 @@ namespace VeterinariaSystem.Models
             IList<Turno> lista = new List<Turno>();
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
+                string sql =
+                    @"
                     SELECT t.Id, t.Id_Mascota, t.Motivo, t.Fecha, t.Hora, t.Estado,
                         m.Nombre, m.Especie, m.Raza, m.Edad, m.Peso, m.Sexo, m.Id_Dueno
                     FROM Turno t
@@ -235,25 +254,29 @@ namespace VeterinariaSystem.Models
                     {
                         while (reader.Read())
                         {
-                            lista.Add(new Turno
-                            {
-                                Id = reader.GetInt32(0),
-                                Id_Mascota = reader.IsDBNull(1) ? null : reader.GetInt32(1),
-                                Motivo = reader.GetString(2),
-                                Fecha = reader.GetDateTime(3),
-                                Hora = reader.GetTimeSpan(4),
-                                Estado = reader.GetInt32(5),
-                                Mascota = reader.IsDBNull(1) ? null : new Mascota
+                            lista.Add(
+                                new Turno
                                 {
-                                    Nombre = reader.GetString(6),
-                                    Especie = reader.GetString(7),
-                                    Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
-                                    Edad = reader.GetInt32(9),
-                                    Peso = reader.GetInt32(10),
-                                    Sexo = reader.GetString(11),
-                                    Id_Dueno = reader.GetInt32(12)
+                                    Id = reader.GetInt32(0),
+                                    Id_Mascota = reader.IsDBNull(1) ? null : reader.GetInt32(1),
+                                    Motivo = reader.GetString(2),
+                                    Fecha = reader.GetDateTime(3),
+                                    Hora = reader.GetTimeSpan(4),
+                                    Estado = reader.GetInt32(5),
+                                    Mascota = reader.IsDBNull(1)
+                                        ? null
+                                        : new Mascota
+                                        {
+                                            Nombre = reader.GetString(6),
+                                            Especie = reader.GetString(7),
+                                            Raza = reader.IsDBNull(8) ? null : reader.GetString(8),
+                                            Edad = reader.GetInt32(9),
+                                            Peso = reader.GetInt32(10),
+                                            Sexo = reader.GetString(11),
+                                            Id_Dueno = reader.GetInt32(12),
+                                        },
                                 }
-                            });
+                            );
                         }
                     }
                     connection.Close();
@@ -267,7 +290,8 @@ namespace VeterinariaSystem.Models
             Turno turno = null;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"
+                string sql =
+                    @"
                     SELECT t.Id, t.Id_Mascota, t.Motivo, t.Fecha, t.Hora, t.Estado,
                         m.Nombre, m.Especie, m.Raza, m.Edad, m.Peso, m.Sexo, m.Id_Dueno
                     FROM Turno t
@@ -298,8 +322,8 @@ namespace VeterinariaSystem.Models
                                     Edad = reader.GetInt32(9),
                                     Peso = reader.GetInt32(10),
                                     Sexo = reader.GetString(11),
-                                    Id_Dueno = reader.GetInt32(12)
-                                }
+                                    Id_Dueno = reader.GetInt32(12),
+                                },
                             };
                         }
                     }
@@ -308,12 +332,14 @@ namespace VeterinariaSystem.Models
             }
             return turno;
         }
+
         public bool ExisteTurnoEnHorario(DateTime fecha, TimeSpan hora)
         {
             bool existe = false;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT COUNT(*) FROM Turno WHERE Fecha = @fecha AND Hora = @hora AND Estado = 1;";
+                string sql =
+                    @"SELECT COUNT(*) FROM Turno WHERE Fecha = @fecha AND Hora = @hora AND Estado = 1;";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@fecha", fecha.Date);
@@ -331,7 +357,8 @@ namespace VeterinariaSystem.Models
             bool existe = false;
             using (var connection = new MySqlConnection(connectionString))
             {
-                string sql = @"SELECT COUNT(*) FROM Turno WHERE Id_Mascota = @idMascota AND Fecha = @fecha AND Estado = 1;";
+                string sql =
+                    @"SELECT COUNT(*) FROM Turno WHERE Id_Mascota = @idMascota AND Fecha = @fecha AND Estado = 1;";
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@idMascota", idMascota);
@@ -343,14 +370,16 @@ namespace VeterinariaSystem.Models
             }
             return existe;
         }
-    // Zona paginado
+
+        // Zona paginado
         public IList<Turno> ObtenerPaginadas(int pagina, int tamaño)
         {
             using (var connection = new MySqlConnection(connectionString))
             {
                 var turnos = new List<Turno>();
                 var offset = (pagina - 1) * tamaño;
-                var sql = @"
+                var sql =
+                    @"
                     SELECT
                         t.Id AS TurnoId,
                         t.Id_Mascota AS TurnoIdMascota,
@@ -394,12 +423,14 @@ namespace VeterinariaSystem.Models
                                     Id = reader.GetInt32("MascotaId"),
                                     Nombre = reader.GetString("MascotaNombre"),
                                     Especie = reader.GetString("MascotaEspecie"),
-                                    Raza = reader.IsDBNull("MascotaRaza") ? null : reader.GetString("MascotaRaza"),
+                                    Raza = reader.IsDBNull("MascotaRaza")
+                                        ? null
+                                        : reader.GetString("MascotaRaza"),
                                     Edad = reader.GetInt32("MascotaEdad"),
                                     Peso = reader.GetInt32("MascotaPeso"),
                                     Sexo = reader.GetString("MascotaSexo"),
-                                    Id_Dueno = reader.GetInt32("MascotaIdDueno")
-                                }
+                                    Id_Dueno = reader.GetInt32("MascotaIdDueno"),
+                                },
                             };
                             turnos.Add(turno);
                         }
@@ -409,6 +440,7 @@ namespace VeterinariaSystem.Models
                 return turnos;
             }
         }
+
         public int ObtenerCantidad()
         {
             using (var connection = new MySqlConnection(connectionString))
@@ -426,7 +458,8 @@ namespace VeterinariaSystem.Models
             {
                 var turnos = new List<Turno>();
                 var offset = (pagina - 1) * tamaño;
-                var sql = @"
+                var sql =
+                    @"
                     SELECT
                         t.Id AS TurnoId,
                         t.Id_Mascota AS TurnoIdMascota,
@@ -472,12 +505,14 @@ namespace VeterinariaSystem.Models
                                     Id = reader.GetInt32("MascotaId"),
                                     Nombre = reader.GetString("MascotaNombre"),
                                     Especie = reader.GetString("MascotaEspecie"),
-                                    Raza = reader.IsDBNull("MascotaRaza") ? null : reader.GetString("MascotaRaza"),
+                                    Raza = reader.IsDBNull("MascotaRaza")
+                                        ? null
+                                        : reader.GetString("MascotaRaza"),
                                     Edad = reader.GetInt32("MascotaEdad"),
                                     Peso = reader.GetInt32("MascotaPeso"),
                                     Sexo = reader.GetString("MascotaSexo"),
-                                    Id_Dueno = reader.GetInt32("MascotaIdDueno")
-                                }
+                                    Id_Dueno = reader.GetInt32("MascotaIdDueno"),
+                                },
                             };
                             turnos.Add(turno);
                         }
@@ -487,6 +522,7 @@ namespace VeterinariaSystem.Models
                 return turnos;
             }
         }
+
         public int ObtenerCantidadPorFecha(DateTime fecha)
         {
             using (var connection = new MySqlConnection(connectionString))
@@ -500,13 +536,15 @@ namespace VeterinariaSystem.Models
                 }
             }
         }
+
         public IList<Turno> ObtenerPorMascotaPaginado(int idMascota, int pagina, int tamaño)
         {
             using (var connection = new MySqlConnection(connectionString))
             {
                 var turnos = new List<Turno>();
                 var offset = (pagina - 1) * tamaño;
-                var sql = @"
+                var sql =
+                    @"
                     SELECT
                         t.Id AS TurnoId,
                         t.Id_Mascota AS TurnoIdMascota,
@@ -552,12 +590,14 @@ namespace VeterinariaSystem.Models
                                     Id = reader.GetInt32("MascotaId"),
                                     Nombre = reader.GetString("MascotaNombre"),
                                     Especie = reader.GetString("MascotaEspecie"),
-                                    Raza = reader.IsDBNull("MascotaRaza") ? null : reader.GetString("MascotaRaza"),
+                                    Raza = reader.IsDBNull("MascotaRaza")
+                                        ? null
+                                        : reader.GetString("MascotaRaza"),
                                     Edad = reader.GetInt32("MascotaEdad"),
                                     Peso = reader.GetInt32("MascotaPeso"),
                                     Sexo = reader.GetString("MascotaSexo"),
-                                    Id_Dueno = reader.GetInt32("MascotaIdDueno")
-                                }
+                                    Id_Dueno = reader.GetInt32("MascotaIdDueno"),
+                                },
                             };
                             turnos.Add(turno);
                         }
@@ -567,6 +607,7 @@ namespace VeterinariaSystem.Models
                 return turnos;
             }
         }
+
         public int ObtenerCantidadPorMascota(int idMascota)
         {
             using (var connection = new MySqlConnection(connectionString))
@@ -580,7 +621,6 @@ namespace VeterinariaSystem.Models
                 }
             }
         }
-    //FinZona Paginado
-        
+        //FinZona Paginado
     }
 }

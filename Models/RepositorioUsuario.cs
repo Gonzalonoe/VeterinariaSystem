@@ -11,6 +11,35 @@ namespace VeterinariaSystem.Models
         public RepositorioUsuario(IConfiguration configuration)
             : base(configuration) { }
 
+        // public int Alta(Usuario u)
+        // {
+        //     int res = -1;
+        //     using (var connection = new MySqlConnection(connectionString))
+        //     {
+        //         string sql =
+        //             @"INSERT INTO Usuarios
+        // 			(Nombre, Apellido, Email, Clave, Avatar, Rol)
+        // 			VALUES (@nombre, @apellido, @email, @clave, @avatar, @rol);
+        // 			SELECT LAST_INSERT_ID();";
+        //         using (var command = new MySqlCommand(sql, connection))
+        //         {
+        //             command.Parameters.AddWithValue("@nombre", u.Nombre);
+        //             command.Parameters.AddWithValue("@apellido", u.Apellido);
+        //             command.Parameters.AddWithValue("@email", u.Email);
+        //             command.Parameters.AddWithValue("@clave", u.Clave);
+        //             command.Parameters.AddWithValue(
+        //                 "@avatar",
+        //                 u.Avatar == null ? DBNull.Value : u.Avatar
+        //             );
+        //             command.Parameters.AddWithValue("@rol", u.Rol);
+        //             connection.Open();
+        //             res = Convert.ToInt32(command.ExecuteScalar());
+        //             u.Id = res;
+        //             connection.Close();
+        //         }
+        //     }
+        //     return res;
+        // }
         public int Alta(Usuario u)
         {
             int res = -1;
@@ -18,20 +47,24 @@ namespace VeterinariaSystem.Models
             {
                 string sql =
                     @"INSERT INTO Usuarios
-					(Nombre, Apellido, Email, Clave, Avatar, Rol)
-					VALUES (@nombre, @apellido, @email, @clave, @avatar, @rol);
-					SELECT LAST_INSERT_ID();";
+              (Nombre, Apellido, Email, Clave, Avatar, Rol, Id_Veterinario, Id_Dueno)
+              VALUES (@nombre, @apellido, @email, @clave, @avatar, @rol, @idVeterinario, @idDueno);
+              SELECT LAST_INSERT_ID();";
+
                 using (var command = new MySqlCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@nombre", u.Nombre);
                     command.Parameters.AddWithValue("@apellido", u.Apellido);
                     command.Parameters.AddWithValue("@email", u.Email);
                     command.Parameters.AddWithValue("@clave", u.Clave);
-                    command.Parameters.AddWithValue(
-                        "@avatar",
-                        u.Avatar == null ? DBNull.Value : u.Avatar
-                    );
+                    command.Parameters.AddWithValue("@avatar", u.Avatar ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@rol", u.Rol);
+                    command.Parameters.AddWithValue(
+                        "@idVeterinario",
+                        u.VeterinarioId ?? (object)DBNull.Value
+                    );
+                    command.Parameters.AddWithValue("@idDueno", u.DuenoId ?? (object)DBNull.Value);
+
                     connection.Open();
                     res = Convert.ToInt32(command.ExecuteScalar());
                     u.Id = res;

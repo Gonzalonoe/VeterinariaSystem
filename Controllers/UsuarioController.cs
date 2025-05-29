@@ -442,7 +442,7 @@ namespace VeterinariaSystem.Controllers
             }
         }
 
-        // zona modificar clave
+    // zona modificar clave
         [Authorize]
         public IActionResult CambiarClave()
         {
@@ -513,8 +513,8 @@ namespace VeterinariaSystem.Controllers
             TempData["Mensaje"] = "Contraseña actualizada correctamente.";
             return RedirectToAction("Perfil");
         }
-
-        // Zona veterinario
+    //Fin zona modificar clave
+    // Zona veterinario
         [Authorize(Roles = "Administrador")]
         public IActionResult CrearVeterinarioUsuario()
         {
@@ -551,13 +551,23 @@ namespace VeterinariaSystem.Controllers
                         numBytesRequested: 256 / 8
                     )
                 );
-                usuario.Clave = hashed;
 
+                usuario.VeterinarioId = usuario.VeterinarioId;
+                Console.WriteLine(usuario.VeterinarioId);
+                usuario.Clave = hashed;
                 usuario.Rol = (int)enRoles.Veterinario;
                 repositorio.Alta(usuario);
 
                 return RedirectToAction("Index");
             }
+            foreach (var state in ModelState)
+                {
+                    foreach (var error in state.Value.Errors)
+                    {
+                        Console.WriteLine($"Error en el campo '{state.Key}': {error.ErrorMessage}");
+                    }
+                }
+
 
             ViewBag.Veterinarios = new SelectList(disponibles, "Id", "Apellido");
             return View(usuario);
@@ -583,7 +593,7 @@ namespace VeterinariaSystem.Controllers
 
         //Fin Zona Veterinario
 
-        //Zona Dueno
+    //Zona Dueno
         //admin
         [Authorize(Roles = "Administrador")]
         public IActionResult CrearDuenoUsuario()
@@ -626,7 +636,7 @@ namespace VeterinariaSystem.Controllers
             return View(usuario);
         }
 
-        //publico
+    //publico
         [AllowAnonymous]
         [HttpGet]
         public IActionResult BuscarDuenoPorDni()
@@ -724,10 +734,10 @@ namespace VeterinariaSystem.Controllers
             return RedirectToAction("BuscarDuenoPorDni");
         }
 
-        //Fin Zona Dueno
-        //Zona Api
+    //Fin Zona Dueno
+    //Zona Api
         [AllowAnonymous]
-        [HttpPost("api/token")]
+        [HttpPost("api/token")] //http://localhost:5287/api/token
         public IActionResult ObtenerToken([FromBody] LoginView login)
         {
             if (
@@ -785,6 +795,6 @@ namespace VeterinariaSystem.Controllers
                 }
             );
         }
-        //Fin Zona Api
+    //Fin Zona Api
     }
 }

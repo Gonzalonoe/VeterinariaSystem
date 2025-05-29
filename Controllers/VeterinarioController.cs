@@ -15,12 +15,6 @@ namespace VeterinariaSystem.Controllers
             this.repo = repo;
         }
 
-        // GET: /Veterinario/
-        // public IActionResult Index()
-        // {
-        //     var lista = repo.ObtenerTodos();
-        //     return View(lista);
-        // }
         public IActionResult Index(int pagina = 1, int cantidadPorPagina = 10)
         {
             var total = repo.ObtenerCantidad();
@@ -56,6 +50,7 @@ namespace VeterinariaSystem.Controllers
                 var existente = repo.ObtenerPorDNI(veterinario.DNI);
                 if (existente.Count > 0)
                 {
+                    TempData["MensajeError"] = "Ya existe un veterinario con ese DNI.";
                     ModelState.AddModelError("DNI", "Ya existe un veterinario con ese DNI.");
                     return View(veterinario);
                 }
@@ -117,6 +112,8 @@ namespace VeterinariaSystem.Controllers
         {
             TempData["MensajeBusqueda"] = $"Mostrando resultados para DNI: {dni}";
             var lista = repo.ObtenerPorDNI(dni);
+            ViewBag.TotalPaginas = 1;
+            ViewBag.PaginaActual = 1;
             return View("Index", lista);
         }
 
@@ -131,7 +128,8 @@ namespace VeterinariaSystem.Controllers
         public IActionResult BuscarPorMatricula(string matricula)
         {
             var lista = repo.ObtenerPorMatricula(matricula);
-
+            ViewBag.TotalPaginas = 1;
+            ViewBag.PaginaActual = 1;
             TempData["MensajeBusqueda"] = $"Mostrando resultados para Matrícula: {matricula}";
             return View("Index", lista);
         }

@@ -1,0 +1,11 @@
+En Windows:
+Verifica el proceso que está usando el puerto 3306: Abre el Símbolo del sistema (cmd) como administrador y ejecuta el siguiente comando:
+
+netstat -ano | findstr :3306
+Esto te mostrará el PID (ID del proceso) que está utilizando el puerto.
+
+Detén el proceso: Una vez que tengas el PID, puedes detener el proceso con el siguiente comando:
+
+
+taskkill /PID 5676 /F
+Sustituye <PID_del_proceso> por el número de proceso obtenido en el paso anterior.

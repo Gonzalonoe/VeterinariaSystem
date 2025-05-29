@@ -28,7 +28,7 @@
 
     <div class="form-group">
         <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" id="Email" disabled/>
+        <input asp-for="Email" class="form-control" id="Email" readonly/>
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
@@ -36,11 +36,6 @@
         <label asp-for="Clave"></label>
         <input asp-for="Clave" type="password" class="form-control" />
         <span asp-validation-for="Clave" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="AvatarFile">Avatar (opcional)</label>
-        <input asp-for="AvatarFile" type="file" class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-primary">Crear Usuario</button>
