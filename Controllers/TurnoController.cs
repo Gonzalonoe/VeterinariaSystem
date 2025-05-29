@@ -157,7 +157,6 @@ namespace VeterinariaSystem.Controllers
         public IActionResult BuscarPorMascota(int? idMascota, int pagina = 1)
         {
             var mascotas = repoMascota.ObtenerTodos();
-            ;
             int tamaño = 5;
             if (User.IsInRole("Dueno"))
             {
@@ -199,6 +198,7 @@ namespace VeterinariaSystem.Controllers
             return View("BuscarPorMascota", turnos);
         }
 
+        [Authorize(Roles = "Veterinario, Administrador")]
         public IActionResult ObtenerPorMascota(int? idMascota, int pagina = 1)
         {
             int tamaño = 5;

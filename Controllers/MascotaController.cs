@@ -45,7 +45,13 @@ namespace VeterinariaSystem.Controllers
         // GET: /Mascota/Detalles/5
         public IActionResult Detalles(int id)
         {
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
             var mascota = repositorio.ObtenerPorId(id);
+            if (mascota.Id_Dueno != dueno.Id && !User.IsInRole("Administrador"))
+            {
+                return Unauthorized();
+            }
             if (mascota == null)
                 return NotFound();
 
@@ -80,7 +86,13 @@ namespace VeterinariaSystem.Controllers
         //GET: /Mascota/Editar/5
         public IActionResult Editar(int id)
         {
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
             var mascota = repositorio.ObtenerPorId(id);
+            if (mascota.Id_Dueno != dueno.Id && !User.IsInRole("Administrador"))
+            {
+                return Unauthorized();
+            }
             if (mascota == null)
                 return NotFound();
             return View("Editar", mascota);
@@ -92,6 +104,12 @@ namespace VeterinariaSystem.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Editar(int id, Mascota mascota)
         {
+            var email = User.Identity.Name;
+            var dueno = repoDueno.ObtenerPorEmail(email);
+            if (mascota.Id_Dueno != dueno.Id && !User.IsInRole("Administrador"))
+            {
+                return Unauthorized();
+            }
             if (id != mascota.Id)
                 return NotFound();
             ModelState.Remove("Dueno");
@@ -108,8 +126,7 @@ namespace VeterinariaSystem.Controllers
                 return View("Editar", mascota);
             }
             repositorio.Modificacion(mascota);
-            var email = User.Identity.Name;
-            var dueno = repoDueno.ObtenerPorEmail(email);
+
             if (User.IsInRole("Dueno"))
             {
                 return RedirectToAction(nameof(MisMascotas));

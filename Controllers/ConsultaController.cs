@@ -169,6 +169,7 @@ public class ConsultaController : Controller
         return View();
     }
 
+    [Authorize(Roles = "Veterinario, Administrador")]
     public IActionResult ObtenerMascotasPorDueno(int idDueno)
     {
         var mascotas = repoMascota.ObtenerPorDuenoo(idDueno);
@@ -365,6 +366,7 @@ public class ConsultaController : Controller
         return View();
     }
 
+    [Authorize(Roles = "Veterinario, Administrador, Dueno")]
     public IActionResult BuscarPorMascota(int? idDueno, int? idMascota, int pagina = 1)
     {
         var duenos = repoDueno
